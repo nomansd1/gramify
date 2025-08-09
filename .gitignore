@@ -2,7 +2,7 @@
 node_modules/
 
 # Exclude the generated Prisma client directory
-/generated/prisma
+/src/db/generated/prisma/
 
 # Logs
 logs/

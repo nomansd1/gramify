@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { schemaValidate, verifyJWT } from "../../../middlewares/index.js";
-import { registerUserSchema, loginUserSchema } from "../../../zod-schemas/auth.schema.js"; 
-import { registerUser, loginUser, logoutUser } from "../../../controllers/v1/auth.controllers.js";
+import { schemaValidate, verifyJWT } from "../../middlewares/index.js";
+import { registerUserSchema, loginUserSchema } from "../../zod-schemas/auth.schema.js"; 
+import { registerUser, loginUser, logoutUser } from "../../controllers/v1/auth.controllers.js";
 
 const router = Router();
 
