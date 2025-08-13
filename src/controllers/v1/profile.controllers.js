@@ -1,6 +1,12 @@
 import { StatusCodes } from "http-status-codes";
 import prisma from "../../db/index.js";
-import { ApiError, ApiResponse, asyncHandler } from "../../utils/index.js";
+import {
+  ApiError,
+  ApiResponse,
+  asyncHandler,
+  uploadOnImageKit,
+  deleteFromImageKit,
+} from "../../utils/index.js";
 
 const getProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
@@ -8,59 +14,118 @@ const getProfile = asyncHandler(async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { username },
     select: {
-        id: true,
-        username: true,
-        email: true,
-        bio: true,
-        profilePicture: true,
-        createdAt: true,
-        updatedAt: true,
-    }
+      id: true,
+      username: true,
+      email: true,
+      bio: true,
+      profilePicture: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
 
-    res.status(StatusCodes.OK).json(
-        new ApiResponse(StatusCodes.OK, "User profile retrieved successfully", user)
+  res
+    .status(StatusCodes.OK)
+    .json(
+      new ApiResponse(
+        StatusCodes.OK,
+        "User profile retrieved successfully",
+        user
+      )
     );
-
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
-    const { id } = req.params;
-    const { username, name, bio, profilePicture } = req.body;
+  const { id } = req.params;
+  const { username, name, bio } = req.body;
 
-    if (username) {
-        const existingUser = await prisma.user.findUnique({
-            where: { username },
-        });
+  if (req.user.id !== id) {
+    throw new ApiError(
+      StatusCodes.FORBIDDEN,
+      "You can only edit your own profile"
+    );
+  }
 
-        if (existingUser && existingUser.id !== id) {
-            throw new ApiError(StatusCodes.BAD_REQUEST, "Username already exists");
-        }
+  const existingUser = await prisma.user.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      profilePicture: true,
+      profilePictureId: true,
+    },
+  });
+
+  let profilePictureLocalPath,
+    profilePictureCloudPath,
+    profilePictureId,
+    folderPath = null;
+  if (
+    req.files &&
+    Array.isArray(req.files.profilePicture) &&
+    req.files.profilePicture.length > 0
+  ) {
+    profilePictureLocalPath = req.files.profilePicture[0].path;
+  }
+
+  if (profilePictureLocalPath) {
+    folderPath = `users/${id}/profilePicture`;
+    const { url, fileId } = await uploadOnImageKit(
+      profilePictureLocalPath,
+      folderPath
+    );
+    profilePictureCloudPath = url;
+    profilePictureId = fileId;
+
+    if (profilePictureCloudPath) {
+      await deleteFromImageKit(existingUser.profilePictureId);
     }
+  }
 
+  try {
     const user = await prisma.user.update({
-        where: { id },
-        data: {
-            username,
-            name,
-            bio,
-            profilePicture
-        },
-        select: {
-            id: true,
-            username: true,
-            name: true,
-            bio: true,
-            profilePicture: true,
-            updatedAt: true
-        }
+      where: { id },
+      data: {
+        ...(username && { username }),
+        ...(name && { name }),
+        ...(bio && { bio }),
+        ...(profilePictureCloudPath && {
+          profilePicture: profilePictureCloudPath,
+        }),
+        ...(profilePictureId && { profilePictureId }),
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        bio: true,
+        profilePicture: true,
+        updatedAt: true,
+        createdAt: true,
+      },
     });
 
+    res
+      .status(StatusCodes.OK)
+      .json(
+        new ApiResponse(
+          StatusCodes.OK,
+          "User profile updated successfully",
+          user
+        )
+      );
 
+  } catch (error) {
+    
+    if (profilePictureId) {
+      await deleteFromImageKit(profilePictureId);
+    }
+    
+    throw error;
+  }
 });
 
 export { getProfile, updateProfile };

@@ -17,7 +17,7 @@ const updateProfileSchema = {
       .string()
       .max(160, "Bio must be at most 160 characters long")
       .optional(),
-    profilePicture: z.instanceof(File).optional(),
+    // profilePicture: z.any().optional(),
   }),
   paramsSchema: z.object({
     id: z.string(),

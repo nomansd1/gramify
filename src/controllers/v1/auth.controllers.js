@@ -17,9 +17,6 @@ const generateTokens = async (userId) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    console.log("Access Token: ", accessToken);
-    console.log("Refresh Token: ", refreshToken);
-
     if (!accessToken || !refreshToken) {
       throw new ApiError(
         StatusCodes.INTERNAL_SERVER_ERROR,
@@ -36,7 +33,7 @@ const generateTokens = async (userId) => {
   } catch (error) {
     throw new ApiError(
       StatusCodes.INTERNAL_SERVER_ERROR,
-      "Error while generating tokens ==========",
+      "Error while generating tokens",
       error
     );
   }

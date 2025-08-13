@@ -32,7 +32,7 @@ const verifyJWT = asyncHandler(async (req, res, next) => {
         next();
 
     } catch (error) {
-        throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid access token=====", error);
+        throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid access token", error.errors);
     }
 });
 

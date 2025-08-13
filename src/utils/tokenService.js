@@ -8,12 +8,12 @@ import {
 
 const generateAccessToken = (user) => {
     const payload = { id: user.id, username: user.username };
-    return jwt.sign(payload, process.env.ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
+    return jwt.sign(payload, ACCESS_TOKEN_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
 };
 
 const generateRefreshToken = (user) => {
     const payload = { id: user.id };
-    return jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
+    return jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
 };
 
 export { generateAccessToken, generateRefreshToken };
