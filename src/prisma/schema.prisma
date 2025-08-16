@@ -29,6 +29,8 @@ model User {
 
   followers Follow[] @relation("Follower")
   following Follow[] @relation("Following")
+
+  Posts Post[]
 }
 
 model Follow {
@@ -41,4 +43,31 @@ model Follow {
   following User @relation("Following", fields: [followingId], references: [id])
 
   @@unique([followerId, followingId])
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  userId    String
+  caption   String?  @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  media     Media[]
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model Media {
+  id        String   @id @default(cuid())
+  postId    String
+  url       String
+  fileId    String
+  type      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post Post @relation(fields: [postId], references: [id])
+
+  @@index([postId])
 }

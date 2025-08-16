@@ -8,7 +8,7 @@ import {
   deleteFromImageKit,
 } from "../../utils/index.js";
 
-const getProfile = asyncHandler(async (req, res) => {
+export const getProfile = asyncHandler(async (req, res) => {
   const { username } = req.params;
 
   const user = await prisma.user.findUnique({
@@ -39,7 +39,7 @@ const getProfile = asyncHandler(async (req, res) => {
     );
 });
 
-const updateProfile = asyncHandler(async (req, res) => {
+export const updateProfile = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { username, name, bio } = req.body;
 
@@ -128,4 +128,3 @@ const updateProfile = asyncHandler(async (req, res) => {
   }
 });
 
-export { getProfile, updateProfile };

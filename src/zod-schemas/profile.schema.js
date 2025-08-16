@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-const getProfileSchema = {
+export const getProfileSchema = {
   paramsSchema: z.object({
     username: z.string(),
   }),
 };
 
-const updateProfileSchema = {
+export const updateProfileSchema = {
   bodySchema: z.object({
     name: z.string().min(1, "Name is required").optional(),
     username: z
@@ -23,5 +23,3 @@ const updateProfileSchema = {
     id: z.string(),
   }),
 };
-
-export { getProfileSchema, updateProfileSchema };

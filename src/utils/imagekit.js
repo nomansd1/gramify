@@ -5,10 +5,10 @@ import path from "path";
 const imagekit = new ImageKit({
   publicKey: process.env.IMAGEKIT_PUBLIC_KEY,
   privateKey: process.env.IMAGEKIT_PRIVATE_KEY,
-  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT
+  urlEndpoint: process.env.IMAGEKIT_URL_ENDPOINT,
 });
 
-const uploadOnImageKit = async (localFilePath, folderPath) => {
+export const uploadOnImageKit = async (localFilePath, folderPath) => {
   try {
     if (!localFilePath) return null;
 
@@ -33,22 +33,41 @@ const uploadOnImageKit = async (localFilePath, folderPath) => {
   }
 };
 
-const deleteFromImageKit = async (fileId) => {
-  try {
+export const bulkUploadOnImageKit = (files, folderPath) => {
+  if (!Array.isArray(files) || files.length === 0) return [];
 
+  const uploads = files.map(async (file) => {
+    try {
+      const result = await uploadOnImageKit(file.url, folderPath);
+
+      if (!result) {
+        console.log(`Failed to upload file: ${file.url}`);
+        return null;
+      }
+      return {
+        type: result.fileType,
+        url: result.url,
+        fileId: result.fileId,
+      };
+    } catch (error) {
+      console.error(`Error uploading file ${file.url}:`, error);
+      return null;
+    }
+  });
+
+  return Promise.all(uploads);
+};
+
+export const deleteFromImageKit = async (fileId) => {
+  try {
     if (!fileId) {
       console.log("File ID is required to delete from ImageKit");
       return;
     }
 
     await imagekit.deleteFile(fileId);
-  
   } catch (error) {
     console.log("Error deleting file from ImageKit:", error);
-  } 
+  }
 };
 
-export {
-  uploadOnImageKit,
-  deleteFromImageKit
-};

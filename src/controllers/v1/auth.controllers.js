@@ -39,7 +39,7 @@ const generateTokens = async (userId) => {
   }
 };
 
-const registerUser = asyncHandler(async (req, res) => {
+export const registerUser = asyncHandler(async (req, res) => {
   const { username, email, password, name } = req.body;
 
   const existingUser = await prisma.user.findUnique({
@@ -86,7 +86,7 @@ const registerUser = asyncHandler(async (req, res) => {
   );
 });
 
-const loginUser = asyncHandler(async (req, res) => {
+export const loginUser = asyncHandler(async (req, res) => {
   const { email, username, password } = req.body;
 
   const user = await prisma.user.findUnique({
@@ -131,7 +131,7 @@ const loginUser = asyncHandler(async (req, res) => {
     );
 });
 
-const logoutUser = asyncHandler(async (req, res) => {
+export const logoutUser = asyncHandler(async (req, res) => {
   
   const userId = req.user.id;
   
@@ -147,4 +147,3 @@ const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(StatusCodes.OK, "User logged out successfully"));
 });
 
-export { registerUser, loginUser, logoutUser };
