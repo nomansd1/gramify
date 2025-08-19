@@ -100,6 +100,48 @@ export const createPost = asyncHandler(async (req, res) => {
   }
 });
 
+export const getPost = asyncHandler(async (req, res) => {
+  const { id: postId } = req.params;
+  const id = req.user.id;
+
+  const post = await prisma.post.findUnique({
+    where: {
+      id: postId,
+      userId: id,
+    },
+    select: {
+      id: true,
+      caption: true,
+      createdAt: true,
+      updatedAt: true,
+      media: {
+        select: {
+          id: true,
+          type: true,
+          url: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          profilePicture: true,
+        },
+      },
+    },
+  });
+
+  if (!post) {
+    throw new ApiError(
+      StatusCodes.NOT_FOUND,
+      "Post not found or you do not have permission to view this post."
+    );
+  }
+
+  return res.status(StatusCodes.OK).json(new ApiResponse(StatusCodes.OK, "Post retrieved successfully", post));
+}); 
+
 export const deletePost = asyncHandler(async (req, res) => {
   const { id: postId } = req.params;
   const id = req.user.id;
@@ -140,4 +182,61 @@ export const deletePost = asyncHandler(async (req, res) => {
   return res
     .status(StatusCodes.OK)
     .json(new ApiResponse(StatusCodes.OK, "Post deleted successfully"));
+});
+
+export const updatePost = asyncHandler(async (req, res) => {
+  const { id: postId } = req.params;
+  const id = req.user.id;
+  const { caption } = req.body;
+
+  const post = await prisma.post.findUnique({
+    where: {
+      id: postId,
+      userId: id,
+    },
+    select: {
+      caption: true,
+    },
+  });
+
+  if (!post) {
+    throw new ApiError(
+      StatusCodes.NOT_FOUND,
+      "Post not found or you do not have permission to update this post."
+    );
+  }
+
+  const updatedPost = await prisma.post.update({
+    where: {
+      id: postId,
+    },
+    data: {
+      caption: caption || post.caption,
+    },
+    select: {
+      id: true,
+      caption: true,
+      createdAt: true,
+      updatedAt: true,
+      media: {
+        select: {
+          id: true,
+          type: true,
+          url: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          profilePicture: true,
+        },
+      },
+    },
+  });
+
+  res
+    .status(StatusCodes.OK)
+    .json(new ApiResponse(StatusCodes.OK, "Post updated successfully", updatedPost));
 });

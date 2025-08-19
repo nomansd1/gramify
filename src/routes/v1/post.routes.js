@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { verifyJWT, schemaValidate, upload } from "../../middlewares/index.js";
-import { createPost, deletePost } from "../../controllers/v1/post.controllers.js";
-import { createPostSchema, deletePostSchema } from "../../zod-schemas/post.schema.js";
+import { createPost, getPost, deletePost, updatePost } from "../../controllers/v1/post.controllers.js";
+import { createPostSchema, getPostSchema, deletePostSchema, updatePostSchema } from "../../zod-schemas/post.schema.js";
 
 const router = Router();
 
@@ -23,10 +23,20 @@ router.route("/create-post").post(
     schemaValidate(createPostSchema),
     createPost
 );
+router.route("/get-post/:id").get(
+    verifyJWT,
+    schemaValidate(getPostSchema),
+    getPost
+);
 router.route("/delete-post/:id").delete(
     verifyJWT,
     schemaValidate(deletePostSchema),
     deletePost
+);
+router.route("/update-post/:id").patch(
+    verifyJWT,
+    schemaValidate(updatePostSchema),
+    updatePost
 );
 
 
