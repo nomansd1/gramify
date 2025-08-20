@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { verifyJWT, schemaValidate, upload } from "../../middlewares/index.js";
-import { getProfile, updateProfile } from "../../controllers/v1/profile.controllers.js";
-import { updateProfileSchema, getProfileSchema } from "../../zod-schemas/profile.schema.js";
+import { getProfile, updateProfile, getProfilePosts } from "../../controllers/v1/profile.controllers.js";
+import { updateProfileSchema, getProfileSchema, getProfilePostsSchema } from "../../zod-schemas/profile.schema.js";
 
 const router = Router();
 
@@ -18,6 +18,11 @@ router.route("/edit-profile/:id").patch(
   ]),
   schemaValidate(updateProfileSchema),
   updateProfile
+);
+router.route("/:username/posts").get(
+  verifyJWT, 
+  schemaValidate(getProfilePostsSchema), 
+  getProfilePosts
 );
 
 export default router;

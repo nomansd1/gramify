@@ -30,7 +30,7 @@ model User {
   followers Follow[] @relation("Follower")
   following Follow[] @relation("Following")
 
-  Posts Post[]
+  posts Post[]
 }
 
 model Follow {

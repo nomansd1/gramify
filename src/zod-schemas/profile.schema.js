@@ -23,3 +23,12 @@ export const updateProfileSchema = {
     id: z.string(),
   }),
 };
+
+export const getProfilePostsSchema = {
+  paramsSchema: z.object({
+    username: z.string(),
+  }),
+  querySchema: z.object({
+    page: z.coerce.number().min(1).default(1),
+  }),
+}

@@ -128,3 +128,56 @@ export const updateProfile = asyncHandler(async (req, res) => {
   }
 });
 
+export const getProfilePosts = asyncHandler(async (req, res) => {
+  const { username } = req.params;
+  const { page = 1 } = req.query;
+  const limit = 6;
+  const skip = (page - 1) * limit;
+
+  const profilePosts = await prisma.user.findUnique({
+    where: { username },
+    select: {
+      id: true,
+      username: true,
+      posts: {
+        skip,
+        take: limit,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          caption: true,
+          createdAt: true,
+          updatedAt: true,
+          media: {
+            select: {
+              id: true,
+              type: true,
+              url: true,
+            }
+          },
+          user: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              profilePicture: true,
+            },
+          },
+        }
+      }
+    }
+  });
+
+  if (!profilePosts) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
+  }
+
+  return res.status(StatusCodes.OK).json(
+    new ApiResponse(
+      StatusCodes.OK,
+      "Profile posts retrieved successfully",
+      profilePosts.posts
+    )
+  );
+});
+
