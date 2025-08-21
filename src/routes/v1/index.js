@@ -4,11 +4,13 @@ import { Router } from 'express';
 import authRoutes from './auth.routes.js';
 import profileRoutes from './profile.routes.js';
 import postRoutes from './post.routes.js';
+import followRoutes from './follow.routes.js';
 
 const router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/users', profileRoutes);
 router.use('/posts', postRoutes);
+router.use('/follow', followRoutes);
 
 export default router;
