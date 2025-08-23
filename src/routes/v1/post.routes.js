@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyJWT, schemaValidate, upload } from "../../middlewares/index.js";
-import { createPost, getPost, deletePost, updatePost } from "../../controllers/v1/post.controllers.js";
+import { createPost, getPost, deletePost, updatePost, likePost, unlikePost } from "../../controllers/v1/post.controllers.js";
 import { createPostSchema, getPostSchema, deletePostSchema, updatePostSchema } from "../../zod-schemas/post.schema.js";
 
 const router = Router();
@@ -38,6 +38,13 @@ router.route("/update-post/:id").patch(
     schemaValidate(updatePostSchema),
     updatePost
 );
-
+router.route("/:id/like").post(
+    verifyJWT,
+    likePost
+);
+router.route("/:id/unlike").post(
+    verifyJWT,
+    unlikePost
+);
 
 export default router;
