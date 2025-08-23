@@ -307,3 +307,40 @@ export const unlikePost = asyncHandler(async (req, res) => {
     .status(StatusCodes.OK)
     .json(new ApiResponse(StatusCodes.OK, "Post unliked successfully"));
 });
+
+export const likePostUsers = asyncHandler(async (req, res) => {
+  const { id: postId } = req.params;
+const { page = 1 } = req.query;
+  const limit = 10;
+  const skip = (page - 1) * limit;
+
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+    select: {
+      likes: {
+        skip,
+        take: limit,
+        select: {
+          user: {
+            select: {
+              id: true,
+              username: true,
+              name: true,
+              profilePicture: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!post) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Post not found");
+  }
+
+  const users = post.likes.map((like) => like.user);
+
+  return res
+    .status(StatusCodes.OK)
+    .json(new ApiResponse(StatusCodes.OK, "Users who liked the post", users));
+});
