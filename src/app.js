@@ -17,6 +17,7 @@ app.use(cookieParser());
 
 // importing api router
 import apiRouter from "./routes/index.js";
+
 app.use("/api", apiRouter);
 
 export default app;
