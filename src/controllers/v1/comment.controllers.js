@@ -83,3 +83,75 @@ export const getCommentsByPost = asyncHandler(async (req, res) => {
     .status(StatusCodes.OK)
     .json(new ApiResponse(StatusCodes.OK, "Comments fetched successfully", comments));
 });
+
+export const deleteComment = asyncHandler(async (req, res) => {
+  const { id: commentId } = req.params;
+  const { id: userId } = req.user;
+
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: { userId: true },
+  });
+
+  if (!comment) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Comment not found");
+  }
+
+  if (comment.userId !== userId) {
+    throw new ApiError(StatusCodes.FORBIDDEN, "You are not authorized to delete this comment");
+  }
+
+  await prisma.comment.delete({
+    where: { id: commentId },
+  });
+
+  res
+    .status(StatusCodes.OK)
+    .json(new ApiResponse(StatusCodes.OK, "Comment deleted successfully", null));
+});
+
+export const editComment = asyncHandler(async (req, res) => {
+  const { id: commentId } = req.params;
+  const { id: userId } = req.user;
+  const { content } = req.body;
+
+  const comment = await prisma.comment.findUnique({
+    where: { id: commentId },
+    select: { userId: true },
+  });
+
+  if (!comment) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Comment not found");
+  }
+
+  if (comment.userId !== userId) {
+    throw new ApiError(StatusCodes.FORBIDDEN, "You are not authorized to edit this comment");
+  }
+
+  const updatedComment = await prisma.comment.update({
+    where: { id: commentId },
+    data: { 
+      content, 
+      isEdited: true
+    },
+    select: {
+      id: true,
+      content: true,
+      createdAt: true,
+      updatedAt: true,
+      isEdited: true,
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          profilePicture: true,
+        },
+      },
+    },
+  });
+
+  res
+    .status(StatusCodes.OK)
+    .json(new ApiResponse(StatusCodes.OK, "Comment updated successfully", updatedComment));
+});
