@@ -4,7 +4,7 @@ import { asyncHandler, ApiError } from "../utils/index.js";
 const schemaValidate = ({ querySchema, bodySchema, paramsSchema, headersSchema }) =>
   asyncHandler(async (req, res, next) => {
     try {
-
+      
       querySchema?.parse(req.query);
       bodySchema?.parse(req.body);
       paramsSchema?.parse(req.params);
