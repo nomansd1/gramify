@@ -1,6 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import { asyncHandler, ApiError, ApiResponse } from "../../utils/index.js";
 import prisma from "../../db/index.js";
+import { getSocket } from "../../utils/socket.js";
 
 export const createChat = asyncHandler(async (req, res) => {
   const { participants } = req.body;
@@ -31,7 +32,7 @@ export const createChat = asyncHandler(async (req, res) => {
     where: {
       participants: {
         every: {
-          id: { in: participants },
+          userId: { in: participants },
         },
       },
     },
@@ -55,7 +56,7 @@ export const createChat = asyncHandler(async (req, res) => {
   });
 
   if (existingChat) {
-    res
+    return res
       .status(StatusCodes.OK)
       .json(
         new ApiResponse(StatusCodes.OK, "Chat already exists", existingChat)
@@ -89,50 +90,56 @@ export const createChat = asyncHandler(async (req, res) => {
     },
   });
 
-  res
+  // Emit socket event to all participants
+  const io = getSocket();
+  participants.forEach((userId) => {
+    io.to(userId).emit("chat:created", newChat);
+  });
+
+  return res
     .status(StatusCodes.CREATED)
     .json(new ApiResponse(StatusCodes.CREATED, "Chat created", newChat));
 });
 
 export const getAllChats = asyncHandler(async (req, res) => {
-    const { page = 1 } = req.query;
-    const limit = 10;
-    const skip = (page - 1) * limit;
-    const userId = req.user.id;
+  const { page = 1 } = req.query;
+  const limit = 10;
+  const skip = (page - 1) * limit;
+  const userId = req.user.id;
 
-    const chats = await prisma.chat.findMany({
-        where: {
-            participants: {
-                some: {
-                    userId: userId,
-                },
-            },
+  const chats = await prisma.chat.findMany({
+    where: {
+      participants: {
+        some: {
+          userId: userId,
         },
+      },
+    },
+    select: {
+      id: true,
+      participants: {
         select: {
-            id: true,
-            participants: {
-                select: {
-                    user: {
-                        select: {
-                            id: true,
-                            username: true,
-                            email: true,
-                            profilePicture: true,
-                        },
-                    },
-                },
+          user: {
+            select: {
+              id: true,
+              username: true,
+              email: true,
+              profilePicture: true,
             },
-            createdAt: true,
-            updatedAt: true,
+          },
         },
-        skip: skip,
-        take: limit,
-        orderBy: {
-            updatedAt: 'desc',
-        },
-    });
+      },
+      createdAt: true,
+      updatedAt: true,
+    },
+    skip: skip,
+    take: limit,
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
 
-    res
-        .status(StatusCodes.OK)
-        .json(new ApiResponse(StatusCodes.OK, "Chats retrieved", chats));
+  res
+    .status(StatusCodes.OK)
+    .json(new ApiResponse(StatusCodes.OK, "Chats retrieved", chats));
 });
