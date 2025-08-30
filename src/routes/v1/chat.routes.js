@@ -4,7 +4,9 @@ import {
   createChat,
   getAllChats,
   sendMessage,
-  getMessages
+  getMessages,
+  editMessage,
+  deleteMessage
 } from "../../controllers/v1/chat.controllers.js";
 import {
   createChatSchema,
@@ -20,5 +22,7 @@ router
   .route("/:id/message")
   .post(verifyJWT, schemaValidate(sendMessageSchema), sendMessage);
 router.route("/:id").get(verifyJWT, getMessages);
+router.route("/:id/messages/:messageId").patch(verifyJWT, editMessage);
+router.route("/:id/messages/:messageId").delete(verifyJWT, deleteMessage);
 
 export default router;

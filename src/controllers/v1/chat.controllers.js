@@ -178,7 +178,7 @@ export const sendMessage = asyncHandler(async (req, res) => {
       content,
     },
     include: {
-      sender: {
+      user: {
         select: {
           id: true,
           username: true,
@@ -246,4 +246,108 @@ export const getMessages = asyncHandler(async (req, res) => {
   return res
     .status(StatusCodes.OK)
     .json(new ApiResponse(StatusCodes.OK, "Messages Retrieved!", chat));
+});
+
+export const editMessage = asyncHandler(async (req, res) => {
+  const { id: chatId, messageId } = req.params;
+  const { content } = req.body;
+  const currentUser = req.user.id;
+
+  const chat = await prisma.chat.findUnique({
+    where: { id: chatId },
+    select: { id: true },
+  });
+
+  if (!chat) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Chat not found");
+  }
+
+  const message = await prisma.message.findUnique({
+    where: { id: messageId },
+    select: { senderId: true },
+  });
+
+  if (!message) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Message not found");
+  }
+
+  if (message.senderId !== currentUser) {
+    throw new ApiError(
+      StatusCodes.FORBIDDEN,
+      "You are not authorized to edit this message"
+    );
+  }
+
+  const updatedMessage = await prisma.message.update({
+    where: { id: messageId },
+    data: {
+      content,
+      isEdited: true,
+    },
+    select: {
+      id: true,
+      content: true,
+      createdAt: true,
+      updatedAt: true,
+      isEdited: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          profilePicture: true,
+        },
+      },
+    },
+  });
+
+  return res
+    .status(StatusCodes.OK)
+    .json(
+      new ApiResponse(
+        StatusCodes.OK,
+        "Message updated successfully",
+        updatedMessage
+      )
+    );
+});
+
+export const deleteMessage = asyncHandler(async (req, res) => {
+  const { id: chatId, messageId } = req.params;
+  const currentUser = req.user.id;
+
+  const chat = await prisma.chat.findUnique({
+    where: { id: chatId },
+    select: { id: true },
+  });
+
+  if (!chat) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Chat not found");
+  }
+
+  const message = await prisma.message.findUnique({
+    where: { id: messageId },
+    select: { senderId: true },
+  });
+
+  if (!message) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Message not found");
+  }
+
+  if (message.senderId !== currentUser) {
+    throw new ApiError(
+      StatusCodes.FORBIDDEN,
+      "You are not authorized to delete this message"
+    );
+  }
+
+  await prisma.message.delete({
+    where: {
+      id: messageId,
+    },
+  });
+
+  return res
+    .status(StatusCodes.OK)
+    .json(new ApiResponse(StatusCodes.OK, "Message deleted successfully", {}));
 });

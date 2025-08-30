@@ -38,7 +38,7 @@ export const createComment = asyncHandler(async (req, res) => {
     },
   });
 
-  res
+  return res
     .status(StatusCodes.CREATED)
     .json(new ApiResponse(StatusCodes.CREATED, "Comment created successfully", comment));
 });
@@ -151,7 +151,7 @@ export const editComment = asyncHandler(async (req, res) => {
     },
   });
 
-  res
+  return res
     .status(StatusCodes.OK)
     .json(new ApiResponse(StatusCodes.OK, "Comment updated successfully", updatedComment));
 });
