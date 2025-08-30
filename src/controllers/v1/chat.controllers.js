@@ -143,3 +143,107 @@ export const getAllChats = asyncHandler(async (req, res) => {
     .status(StatusCodes.OK)
     .json(new ApiResponse(StatusCodes.OK, "Chats retrieved", chats));
 });
+
+export const sendMessage = asyncHandler(async (req, res) => {
+  const { content } = req.body;
+  const { id: chatId } = req.params;
+  const senderId = req.user.id;
+
+  const chat = await prisma.chat.findUnique({
+    where: { id: chatId },
+    include: {
+      participants: true,
+    },
+  });
+
+  if (!chat) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Chat not found");
+  }
+
+  const isParticipant = chat.participants.some(
+    (participant) => participant.userId === senderId
+  );
+
+  if (!isParticipant) {
+    throw new ApiError(
+      StatusCodes.FORBIDDEN,
+      "You are not a participant of this chat"
+    );
+  }
+
+  const message = await prisma.message.create({
+    data: {
+      chatId,
+      senderId,
+      content,
+    },
+    include: {
+      sender: {
+        select: {
+          id: true,
+          username: true,
+          email: true,
+          profilePicture: true,
+        },
+      },
+    },
+  });
+
+  // Update chat's updatedAt timestamp
+  await prisma.chat.update({
+    where: { id: chatId },
+    data: { updatedAt: new Date() },
+  });
+
+  // Emit socket event to all participants
+  const io = getSocket();
+  chat.participants.forEach((participant) => {
+    io.to(participant.userId).emit("message:received", message);
+  });
+
+  return res
+    .status(StatusCodes.CREATED)
+    .json(new ApiResponse(StatusCodes.CREATED, "Message sent", message));
+});
+
+export const getMessages = asyncHandler(async (req, res) => {
+  const { id: chatId } = req.params;
+  const { page = 1 } = req.query;
+  const limit = 10;
+  const skip = (page - 1) * limit;
+
+  const chat = await prisma.chat.findUnique({
+    where: { id: chatId },
+    select: {
+      id: true,
+      updatedAt: true,
+      createdAt: true,
+      messages: {
+        skip,
+        take: limit,
+        select: {
+          id: true,
+          content: true,
+          updatedAt: true,
+          isEdited: true,
+          user: {
+            select: {
+              id: true,
+              username: true,
+              profilePicture: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!chat) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Chat not found!");
+  }
+
+  return res
+    .status(StatusCodes.OK)
+    .json(new ApiResponse(StatusCodes.OK, "Messages Retrieved!", chat));
+});

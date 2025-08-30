@@ -132,14 +132,13 @@ export const loginUser = asyncHandler(async (req, res) => {
 });
 
 export const logoutUser = asyncHandler(async (req, res) => {
-  
   const userId = req.user.id;
-  
+
   await prisma.user.update({
     where: { id: userId },
     data: { refreshToken: null },
   });
-  
+
   res
     .clearCookie("accessToken", options)
     .clearCookie("refreshToken", options)
@@ -147,3 +146,29 @@ export const logoutUser = asyncHandler(async (req, res) => {
     .json(new ApiResponse(StatusCodes.OK, "User logged out successfully"));
 });
 
+export const changePassword = asyncHandler(async (req, res) => {
+  const { id, password } = req.body;
+
+  const user = prisma.user.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!user) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "user not found");
+  }
+
+  const hashedPassword = await hash(password, 10);
+
+  await prisma.user.update({
+    where: {
+      id,
+    },
+    data: { password: hashedPassword },
+  });
+
+  return res
+    .status(StatusCodes.OK)
+    .json(new ApiResponse(StatusCodes.OK, "password updated for the user", {}));
+});
