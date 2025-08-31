@@ -301,6 +301,9 @@ export const editMessage = asyncHandler(async (req, res) => {
     },
   });
 
+  const io = getSocket();
+  io.to(chatId).emit("message:edited", updatedMessage);
+
   return res
     .status(StatusCodes.OK)
     .json(
@@ -346,6 +349,9 @@ export const deleteMessage = asyncHandler(async (req, res) => {
       id: messageId,
     },
   });
+
+  const io = getSocket();
+  io.to(chatId).emit("message:deleted", { id: messageId });
 
   return res
     .status(StatusCodes.OK)

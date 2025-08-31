@@ -14,3 +14,35 @@ export const sendMessageSchema = {
         id: z.string(),
     }),
 };
+
+export const getAllChatsSchema = {
+    querySchema: z.object({
+        page: z.number().optional(),        
+    }),
+};
+
+export const getMessagesSchema = {
+    paramsSchema: z.object({
+        id: z.string()
+    }),
+    querySchema: z.object({
+        page: z.number()
+    })    
+};
+
+export const editMessageSchema = {
+    paramsSchema: z.object({
+        id: z.string(),
+        messageId: z.string()
+    }),
+    bodySchema: z.object({
+        content: z.string().min(1, "Message content cannot be empty")
+    }),
+};
+
+export const deleteMessageSchema = {
+    paramsSchema: z.object({
+        id: z.string(),
+        messageId: z.string()        
+    })
+};
