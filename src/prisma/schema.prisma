@@ -30,11 +30,12 @@ model User {
   followers Follow[] @relation("Follower")
   following Follow[] @relation("Following")
 
-  posts Post[]
-  likes Like[]
-  comments Comment[]
+  posts        Post[]
+  likes        Like[]
+  comments     Comment[]
   participants Participant[]
-  messages Message[]
+  messages     Message[]
+  stories      Story[]
 }
 
 model Follow {
@@ -57,8 +58,8 @@ model Post {
   updatedAt DateTime @updatedAt
   media     Media[]
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  likes Like[]
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  likes    Like[]
   comments Comment[]
 
   @@index([userId])
@@ -112,14 +113,14 @@ model Chat {
   updatedAt DateTime @updatedAt
 
   participants Participant[]
-  messages Message[]
+  messages     Message[]
 }
 
 model Participant {
-  id        String   @id @default(cuid())
-  chatId    String
-  userId    String
-  joinedAt  DateTime @default(now())
+  id       String   @id @default(cuid())
+  chatId   String
+  userId   String
+  joinedAt DateTime @default(now())
 
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -142,4 +143,19 @@ model Message {
 
   @@index([chatId])
   @@index([senderId])
+}
+
+model Story {
+  id        String   @id @default(cuid())
+  userId    String
+  url       String
+  type      String
+  fileId    String
+  caption   String?  @default("")
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

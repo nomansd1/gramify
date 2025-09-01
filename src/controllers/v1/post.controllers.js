@@ -14,8 +14,6 @@ export const createPost = asyncHandler(async (req, res) => {
 
   const files = req.files?.media || [];
 
-  console.log("files", req.files);
-
   const hasNedia = files.length > 0;
 
   if (!hasNedia) {
@@ -38,8 +36,6 @@ export const createPost = asyncHandler(async (req, res) => {
 
   if (localMedia.length > 0) {
     cloudMedia = await bulkUploadOnImageKit(localMedia, folderPath);
-
-    console.log("cloudMedia", cloudMedia);
   }
 
   if (cloudMedia.length > 0) {

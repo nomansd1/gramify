@@ -180,4 +180,3 @@ export const getProfilePosts = asyncHandler(async (req, res) => {
     )
   );
 });
-
