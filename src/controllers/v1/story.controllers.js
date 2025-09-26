@@ -104,7 +104,7 @@ export const deleteStory = asyncHandler(async (req, res) => {
     select: {
       id: true,
       fileId: true,
-      userId: trues,
+      userId: true,
     },
   });
 
@@ -127,13 +127,49 @@ export const deleteStory = asyncHandler(async (req, res) => {
     },
   });
 
+  const io = getSocket();
+  io.emit("story:deleted", { id: storyId, userId });
+
   return res
     .status(StatusCodes.OK)
     .json(new ApiResponse(StatusCodes.OK, "Story has deleted successfully"));
 });
 
 export const getFollowingUsersStories = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
 
+  const stories = await prisma.story.findMany({
+    where: {
+      user: {
+        followers: {
+          some: { followerId: userId },
+        },
+      },
+      expiresAt: { gt: new Date() },
+    },
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      caption: true,
+      url: true,
+      type: true,
+      fileId: true,
+      createdAt: true,
+      expiresAt: true,
+      user: { 
+        select: { 
+          id: true, 
+          name: true, 
+          username: true, 
+          profilePicture: true 
+        } 
+      },
+    },
+  });
+
+  return res
+    .status(StatusCodes.OK)
+    .json(new ApiResponse(StatusCodes.OK, "Stories fetched successfully", stories));
 });
 
 export const getSpecificStory = asyncHandler(async (req, res) => {
