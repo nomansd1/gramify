@@ -141,11 +141,10 @@ export const getFollowingUsersStories = asyncHandler(async (req, res) => {
   const stories = await prisma.story.findMany({
     where: {
       user: {
-        followers: {
+        following: {
           some: { followerId: userId },
         },
       },
-      expiresAt: { gt: new Date() },
     },
     orderBy: { createdAt: "desc" },
     select: {

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyJWT, schemaValidate, upload } from "../../middlewares/index.js";
-import { uploadStory, getSpecificStory, deleteStory } from "../../controllers/v1/story.controllers.js";
+import { uploadStory, getSpecificStory, deleteStory, getFollowingUsersStories } from "../../controllers/v1/story.controllers.js";
 
 const router = Router();
 
@@ -27,5 +27,6 @@ router.route("/").post(
 );
 router.route("/:id").get(verifyJWT, getSpecificStory);
 router.route("/:id").delete(verifyJWT, deleteStory);
+router.route("").get(verifyJWT, getFollowingUsersStories);
 
 export default router;
