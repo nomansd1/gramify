@@ -7,7 +7,8 @@ import {
     updatePost, 
     likePost, 
     unlikePost, 
-    likePostUsers 
+    likePostUsers, 
+    getFeedPosts
 } from "../../controllers/v1/post.controllers.js";
 import { 
     createPostSchema, 
@@ -63,5 +64,6 @@ router.route("/:id/likes").get(
     verifyJWT,
     likePostUsers
 );
+router.route("/feed").get(verifyJWT, getFeedPosts);
 
 export default router;

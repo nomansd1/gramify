@@ -340,3 +340,56 @@ const { page = 1 } = req.query;
     .status(StatusCodes.OK)
     .json(new ApiResponse(StatusCodes.OK, "Users who liked the post", users));
 });
+
+export const getFeedPosts = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+  const { page = 1 } = req.query;
+  const limit = 10;
+  const skip = (page - 1) * limit;
+
+  const following = await prisma.follow.findMany({
+    where: { followerId: userId },
+    select: { followingId: true },
+  });
+
+  if (following.length === 0) {
+    throw new ApiError(
+      StatusCodes.NOT_FOUND,
+      "You are not following anyone. Follow users to see their posts in your feed."
+    );
+  }
+
+  const followingIds = following.map((f) => f.followingId);
+
+  const posts = await prisma.post.findMany({
+    where: { userId: { in: followingIds } },
+    skip,
+    take: limit,
+    orderBy: { createdAt: "desc" },
+    select: {
+      id: true,
+      caption: true,
+      createdAt: true,
+      updatedAt: true,
+      media: {
+        select: {
+          id: true,
+          type: true,
+          url: true,
+        },
+      },
+      user: {
+        select: {
+          id: true,
+          username: true,
+          name: true,
+          profilePicture: true,
+        },
+      },
+    },
+  });
+
+  return res
+    .status(StatusCodes.OK)
+    .json(new ApiResponse(StatusCodes.OK, "Feed posts retrieved successfully", posts));
+});
